@@ -28,73 +28,77 @@ class NeuralNetwork():
         self.outputBias = M.Matrix(output, 1)
         
     def predict(self, my_input):
-        echo = M.Matrix.multiplyMatrix(self.echoWeights, my_input)
-        echo = echo.add(self.echoBias)
+        echo = M.Matrix.multiplyMatrix(M.Matrix, self.echoWeights, my_input)
+        echo = echo.addMatrix(self.echoBias)
         echo.sigmoid()
         
-        foxtrot = M.Matrix.multiplyMatrix(echo, self.foxtrotWeights)
-        foxtrot = foxtrot.add(self.foxtrotBias)
+        print(echo.data)
+        
+        foxtrot = M.Matrix.multiplyMatrix(M.Matrix, echo, self.foxtrotWeights)
+        foxtrot = foxtrot.addMatrix(self.foxtrotBias)
         foxtrot.sigmoid()
         
-        output = M.Matrix.multiplyMatrix(self.outputWeights, foxtrot)
-        output = output.add(self.outputBias)
+        print(foxtrot.data)
+        
+        output = M.Matrix.multiplyMatrix(M.Matrix, self.outputWeights, foxtrot)
+        output = output.addMatrix(self.outputBias)
         output.sigmoid()
         
-        return output.toArray()
+        return output.data
     
     def train(self, x, y):
         #forward propogate
         echo = M.Matrix.multiplyMatrix(M.Matrix, self.echoWeights, x)
-        echo = echo.add(self.echoBias)
+        echo = echo.addMatrix(self.echoBias)
         echo.sigmoid()
         
-        foxtrot = M.Matrix.multiplyMatrix(echo, self.foxtrotWeights)
-        foxtrot = foxtrot.add(self.foxtrotBias)
+        foxtrot = M.Matrix.multiplyMatrix(M.Matrix, echo, self.foxtrotWeights)
+        foxtrot = foxtrot.addMatrix(self.foxtrotBias)
         foxtrot.sigmoid()
         
-        output = M.Matrix.multiplyMatrix(self.outputWeights, foxtrot)
-        output = output.add(self.outputBias)
+        output = M.Matrix.multiplyMatrix(M.Matrix, self.outputWeights, foxtrot)
+        output = output.addMatrix(self.outputBias)
         output.sigmoid()
         
-        target = M.Matrix(x.shape[0], x.shape[1], x)
+        target = M.Matrix(y.shape[0], 1, y)
         
-        error = M.Matrix.subtract(target, output)
+        error = M.Matrix.subtract(M.Matrix, target, output)
         
         gradient = output.disigmoid()
-        gradient.dot(error)
+        gradient = M.Matrix.dot(M.Matrix, gradient, error)
         gradient.multiply(self.learnRate)
         
         foxtrotTrans = foxtrot.transpose()
-        outputWeightsDelta = M.Matrix.multiplyMatrix(gradient, foxtrotTrans)
+        outputWeightsDelta = M.Matrix.multiplyMatrix(M.Matrix, gradient, foxtrotTrans)
         
-        self.outputWeights = self.outputWeights.add(outputWeightsDelta)
-        self.outputBias = self.outputBias.add(gradient)
+        self.outputWeights = self.outputWeights.addMatrix(outputWeightsDelta)
+        self.outputBias = self.outputBias.addMatrix(gradient)
         
         outputWeightsTrans = self.outputWeights.transpose()
-        foxtrotError = M.Matrix.multiplyMatrix(outputWeightsTrans, error)
+        foxtrotError = M.Matrix.multiplyMatrix(M.Matrix, outputWeightsTrans, error)
         
         foxtrotGradient = foxtrot.disigmoid()
-        foxtrotGradient.dot(foxtrotError)
+        foxtrotGradient = M.Matrix.dot(M.Matrix, foxtrotGradient, foxtrotError)
         foxtrotGradient.multiply(self.learnRate)
         
         echoTrans = echo.transpose()
-        foxtrotWeightsDelta = M.Matrix.multiplyMatrix(foxtrotGradient, echoTrans)
+        foxtrotWeightsDelta = M.Matrix.multiplyMatrix(M.Matrix, foxtrotGradient, echoTrans)
         
-        self.foxtraotWeights = self.foxtrotWeights.add(foxtrotWeightsDelta)
-        self.foxtrotBias = self.foxtrotBias.add(foxtrotGradient)
+        self.foxtraotWeights = self.foxtrotWeights.addMatrix(foxtrotWeightsDelta)
+        self.foxtrotBias = self.foxtrotBias.addMatrix(foxtrotGradient)
         
         foxtrotWeightsTrans = self.foxtrotWeights.transpose()
-        echoError = M.Matrix.multiplyMatrix(foxtrotWeightsTrans, foxtrotError)
+        echoError = M.Matrix.multiplyMatrix(M.Matrix, foxtrotWeightsTrans, foxtrotError)
         
         echoGradient = echo.disigmoid()
-        echoGradient.dot(echoError)
+        echoGradient = M.Matrix.dot(M.Matrix, echoGradient, echoError)
         echoGradient.multiply(self.learnRate)
         
         xTrans = x.transpose()
-        echoWeightsDelta = M.Matrix.multiplyMatrix(echoGradient, xTrans)
+        echoWeightsDelta = M.Matrix.multiplyMatrix(M.Matrix, echoGradient, xTrans)
         
-        self.echoWeights = self.echoWeights.add(echoWeightsDelta)
-        self.echoBias = self.echoBias.add(echoGradient)
+        self.echoWeights = self.echoWeights.addMatrix(echoWeightsDelta)
+        self.echoBias = self.echoBias.addMatrix(echoGradient)
         
     def fit(self, x, y, epochs):
         for num in range(epochs):
