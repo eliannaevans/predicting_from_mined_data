@@ -19,71 +19,74 @@ class Matrix():
         '''
         Constructor
         '''
+        
         self.numRows = rows
         self.numCols = cols
         if data.any() == None:
-            self.data = np.array((self.numRows, self.numCols))
+            self.data = np.zeros((self.numRows, self.numCols))
         
-            for spot in np.nditer(self.data):
-                spot = np.random.uniform()*2 - 1
+            for i in range(self.numRows):
+                for j in range(self.numCols):
+                    self.data[i,j] = np.random.uniform()*2 - 1
         else:
             self.data = data
             
     def add(self, num):
-        s = np.zeros((self.numRows, self.numCols))
-        for spot, entry in zip(np.nditer(s), np.nditer(self.data)):
-            spot = entry + num
-        return Matrix(self.numRows, self.numCols, s)
+        for i in range(self.numRows):
+            for j in range(self.numCols):
+                self.data[i,j] += num
         
     def addMatrix(self, m):
-        s = np.zeros((self.numRows, self.numCols))
-        for spot, entry, place in zip(np.nditer(s.data), np.nditer(self.data), np.nditer(m.data)):
-            spot = entry + place
-        return Matrix(self.numRows, self.numCols, s)
+        for i in range(m.numRows):
+            for j in range(m.numCols):
+                self.data[i,j] += m.data[i,j]
     
     def subtract(self, a, b):
         s = np.zeros((a.numRows, a.numCols))
-        for spot, entry, place in zip(np.nditer(s.data), np.nditer(a.data), np.nditer(b.data)):
-            spot = entry - place
+        for i in range(a.numRows):
+            for j in range(a.numCols):
+                s[i,j] = a.data[i,j] - b.data[i,j]
         return Matrix(a.numRows, a.numCols, s)
     
     def transpose(self):
-        return Matrix(self.numRows, self.numCols, self.data.transpose())
+        return Matrix(self.numRows, self.numCols, self.data.T)
     
     def dot(self, a, b):
-        m = np.zeros((1, b.numCols))
+        m = np.zeros((a.numRows, b.numCols))
         
-        count = 0
-        for column in b.data:
-            sum = 0
-            for spot, entry in zip(a.data.transpose(), column):
-                sum += spot*entry
-            m[0,count] = sum
-            count += 1
-            
-        return Matrix(1, b.numCols, m)
+        for i in range(a.numRows):
+            for j in range(b.numCols):
+                dot_sum = 0
+                print(a.data.shape)
+                if b.numRows == 1:
+                    for k in range(a.numCols):
+                        dot_sum += a.data[i,k] * b.data[j]
+                else:
+                    for k in range(a.numCols):
+                        dot_sum += a.data[i,k] * b.data[k,j]
+                m[i,j] = dot_sum
+        
+        return Matrix(a.numRows, b.numCols, m)
     
-    def multiplyMatrix(self, a, b):
-        m = np.zeros((a.numRows, a.numCols))
-        for spot, entry, place in zip(np.nditer(m.data), np.nditer(a.data), np.nditer(b.data)):
-            spot = entry*place
-            
-        return Matrix(a.numRows, a.numCols, m)
+    def multiplyMatrix(self, m):
+        for i in range(m.numRows):
+            for j in range(m.numCols):
+                self.data[i,j] *= m.data[i,j]
             
     def multiply(self, num):
-        m = np.zeros((self.numRows, self.numCols))
-        for spot, entry in zip(np.nditer(m), np.nditer(self.data)):
-            spot = entry*num
-            
-        return Matrix(self.numRows, self.numCols, m)
+        for i in range(self.numRows):
+            for j in range(self.numCols):
+                self.data[i,j] *= num
             
     def sigmoid(self):
-        for spot in np.nditer(self.data):
-            spot = 1/(1 + math.exp(-spot))
+        for i in range(self.numRows):
+            for j in range(self.numCols):
+                self.data[i,j] = 1/(1 + math.exp(-self.data[i,j]))
             
     def disigmoid(self):
         m = Matrix(self.numRows, self.numCols)
-        for spot, entry in zip(np.nditer(m.data), np.nditer(self.data)):
-            spot = entry*(1 - entry)
+        for i in range(self.numRows):
+            for j in range(self.numCols):
+                m.data[i,j] = self.data[i,j]*(1-self.data[i,j])
             
         return m

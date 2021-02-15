@@ -28,41 +28,42 @@ class NeuralNetwork():
         self.outputBias = M.Matrix(output, 1)
         
     def predict(self, my_input):
-        echo = M.Matrix.multiplyMatrix(M.Matrix, self.echoWeights, my_input)
-        echo = echo.addMatrix(self.echoBias)
+        echo = M.Matrix.dot(M.Matrix, self.echoWeights, my_input) #clear
+        echo.addMatrix(self.echoBias)
         echo.sigmoid()
         
-        print(echo.data)
-        
-        foxtrot = M.Matrix.multiplyMatrix(M.Matrix, echo, self.foxtrotWeights)
-        foxtrot = foxtrot.addMatrix(self.foxtrotBias)
+        foxtrot = M.Matrix.dot(M.Matrix, echo, self.foxtrotWeights)
+        foxtrot.addMatrix(self.foxtrotBias)
         foxtrot.sigmoid()
         
-        print(foxtrot.data)
+        #print(foxtrot.data)
         
-        output = M.Matrix.multiplyMatrix(M.Matrix, self.outputWeights, foxtrot)
-        output = output.addMatrix(self.outputBias)
+        output = M.Matrix.dot(M.Matrix, self.outputWeights, foxtrot)
+        output.addMatrix(self.outputBias)
         output.sigmoid()
         
         return output.data
     
     def train(self, x, y):
         #forward propogate
-        echo = M.Matrix.multiplyMatrix(M.Matrix, self.echoWeights, x)
-        echo = echo.addMatrix(self.echoBias)
+        echo = M.Matrix.dot(M.Matrix, self.echoWeights, x)
+        echo.addMatrix(self.echoBias)
         echo.sigmoid()
         
-        foxtrot = M.Matrix.multiplyMatrix(M.Matrix, echo, self.foxtrotWeights)
-        foxtrot = foxtrot.addMatrix(self.foxtrotBias)
+        foxtrot = M.Matrix.dot(M.Matrix, echo, self.foxtrotWeights)
+        foxtrot.addMatrix(self.foxtrotBias)
         foxtrot.sigmoid()
         
-        output = M.Matrix.multiplyMatrix(M.Matrix, self.outputWeights, foxtrot)
-        output = output.addMatrix(self.outputBias)
+        output = M.Matrix.dot(M.Matrix, self.outputWeights, foxtrot)
+        output.addMatrix(self.outputBias)
         output.sigmoid()
         
         target = M.Matrix(y.shape[0], 1, y)
         
         error = M.Matrix.subtract(M.Matrix, target, output)
+        print(target.data)
+        print(error.data)
+        print(output.data)
         
         gradient = output.disigmoid()
         gradient = M.Matrix.dot(M.Matrix, gradient, error)
@@ -71,21 +72,23 @@ class NeuralNetwork():
         foxtrotTrans = foxtrot.transpose()
         outputWeightsDelta = M.Matrix.multiplyMatrix(M.Matrix, gradient, foxtrotTrans)
         
-        self.outputWeights = self.outputWeights.addMatrix(outputWeightsDelta)
-        self.outputBias = self.outputBias.addMatrix(gradient)
+        self.outputWeights.addMatrix(outputWeightsDelta)
+        self.outputBias.addMatrix(gradient)
         
         outputWeightsTrans = self.outputWeights.transpose()
         foxtrotError = M.Matrix.multiplyMatrix(M.Matrix, outputWeightsTrans, error)
         
         foxtrotGradient = foxtrot.disigmoid()
+        print(foxtrotGradient.data)
+        print(foxtrotError.data)
         foxtrotGradient = M.Matrix.dot(M.Matrix, foxtrotGradient, foxtrotError)
         foxtrotGradient.multiply(self.learnRate)
         
         echoTrans = echo.transpose()
         foxtrotWeightsDelta = M.Matrix.multiplyMatrix(M.Matrix, foxtrotGradient, echoTrans)
         
-        self.foxtraotWeights = self.foxtrotWeights.addMatrix(foxtrotWeightsDelta)
-        self.foxtrotBias = self.foxtrotBias.addMatrix(foxtrotGradient)
+        self.foxtrotWeights.addMatrix(foxtrotWeightsDelta)
+        self.foxtrotBias.addMatrix(foxtrotGradient)
         
         foxtrotWeightsTrans = self.foxtrotWeights.transpose()
         echoError = M.Matrix.multiplyMatrix(M.Matrix, foxtrotWeightsTrans, foxtrotError)
@@ -97,11 +100,11 @@ class NeuralNetwork():
         xTrans = x.transpose()
         echoWeightsDelta = M.Matrix.multiplyMatrix(M.Matrix, echoGradient, xTrans)
         
-        self.echoWeights = self.echoWeights.addMatrix(echoWeightsDelta)
-        self.echoBias = self.echoBias.addMatrix(echoGradient)
+        self.echoWeights.addMatrix(echoWeightsDelta)
+        self.echoBias.addMatrix(echoGradient)
         
     def fit(self, x, y, epochs):
         for num in range(epochs):
             sample = (int)(np.random.randint(0, 1) * x.shape[0])
-            self.train(x[sample], y[sample])
+            self.train(M.Matrix(1, x.shape[0], x[sample]), M.Matrix(1, y.shape[0], y[sample]))
         
